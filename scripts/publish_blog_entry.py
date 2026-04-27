@@ -82,7 +82,7 @@ def main() -> int:
 
     # Update state
     state["status"] = "published"
-    state["nextStep"] = "等待 deploy 完成 → live URL 驗證"
+    state["nextStep"] = "wait for deploy -> verify live URL"
     state["lastDeliverable"] = f"commit {commit_sha[:8]}"
     state["blockedReason"] = ""
     state.setdefault("publish", {}).update({
@@ -108,7 +108,7 @@ def main() -> int:
     record_path.parent.mkdir(parents=True, exist_ok=True)
     record_path.write_text(json.dumps(publish_record, ensure_ascii=False, indent=2) + "\n")
 
-    print(f"Published: {source.name} → {target_rel}")
+    print(f"Published: {source.name} -> {target_rel}")
     print(f"Commit: {commit_sha[:8]}")
     if deploy_run:
         print(f"Deploy run: {deploy_run}")

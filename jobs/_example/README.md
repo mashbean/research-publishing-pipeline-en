@@ -1,16 +1,15 @@
 # Example Job Folder
 
-每篇文章都應該有自己的 job folder。
+Each article should have its own job folder.
 
-建議內容：
+Suggested contents:
 
 - `intake.yaml`
-- `deep-research-packet.yaml`
 - `state.json`
-- `raw/`：使用者原始材料、PDF、逐字稿
-- `sources/`：來源清單與下載資料
-- `notes/`：source notes、outline、risk notes
-- `drafts/`：research draft、rewrite draft
-- `verification/`：evidence map、fact-check report
-- `final/`：最終正文
-- `publish/`：commit、deploy、live verify 紀錄
+- `raw/`: user-provided source material, PDFs, transcripts
+- `sources/`: source lists and downloaded materials
+- `notes/`
+- `drafts/`
+- `verification/`
+- `final/`: final article body
+- `publish/`: commit, deploy, and live verification records

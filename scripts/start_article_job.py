@@ -72,7 +72,7 @@ def main() -> int:
     state = load_state(job_dir)
     state["title"] = args.title
     state["status"] = "intake"
-    state["nextStep"] = "scope → generate deep research prompt"
+    state["nextStep"] = "scope -> generate deep research prompt"
     if args.publish_repo:
         state.setdefault("publish", {})["repo"] = args.publish_repo
     save_state(job_dir, state)
@@ -87,7 +87,7 @@ def main() -> int:
 
     print(f"Job created: {job_path}")
     print(f"Title: {args.title}")
-    print(f"Next: Fill intake details → run_deep_research.py {args.job_id} generate-prompt")
+    print(f"Next: Fill intake details -> run_deep_research.py {args.job_id} generate-prompt")
     return 0
 
 

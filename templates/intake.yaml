@@ -1,6 +1,6 @@
 title_hint: ""
 content_goal: blog_article
-language: zh-TW
+language: en
 audience: ""
 source_inputs:
   - ""
@@ -10,9 +10,9 @@ working_thesis: ""
 must_do:
   - ""
 must_avoid:
-  - "自我引用"
-  - "不……而……"
-  - "正文濫用冒號"
+  - "self-citation"
+  - "overused not-X-but-Y framing"
+  - "colon overuse in body prose"
 known_sources:
   - ""
 open_questions:

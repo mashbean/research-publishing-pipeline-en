@@ -1,53 +1,58 @@
 # Publish Policy
 
-## 原則
+## Principle
 
-push 不算完成，deploy success 也不算最終完成。以 live URL 驗證為準。
+A push is not completion, and a successful deploy is not final completion. The live URL is the source of truth.
 
-## 發稿流程
+## Publishing Flow
 
-1. 寫入 final article 檔
-2. 檢查 frontmatter
-3. commit
-4. push
-5. watch deploy
-6. 驗 live URL
+1. Write the final article file.
+2. Check frontmatter.
+3. Commit.
+4. Push.
+5. Watch deploy.
+6. Verify the live URL.
 
-## 最低驗證要求
+## Minimum Verification Requirements
 
 ### Deploy
-- workflow 已完成
-- status = success
+
+- Workflow completed.
+- Status is success.
 
 ### Live URL
-- HTTP 200
-- 標題正確
-- 首段或 lead 正確
-- canonical 短網址可用
 
-### 路徑一致性
-- canonical path 正常
-- legacy path 若存在，應可正確導向 canonical 或顯示正確文章
-- verbose long URL 行為明確且一致
+- HTTP 200.
+- Title is correct.
+- First paragraph or lead is correct.
+- Canonical short URL works.
 
-## 失敗狀態
+### Path Consistency
+
+- Canonical path works.
+- Legacy path, if present, redirects to the canonical path or displays the correct article.
+- Verbose long URL behavior is explicit and consistent.
+
+## Failure States
 
 ### publish-failed
-- git push 失敗
-- workflow 失敗
-- build 卡住
+
+- Git push failed.
+- Workflow failed.
+- Build stalled.
 
 ### verification-failed
-- live URL 404
-- live title 錯誤
-- old path 指到錯文
-- canonical / legacy 行為不一致
 
-## 完工定義
+- Live URL returns 404.
+- Live title is wrong.
+- Old path points to the wrong article.
+- Canonical and legacy behavior are inconsistent.
 
-只有在下列條件全部成立時，文章才算真正完成：
+## Definition of Done
 
-- repo 已更新
-- deploy success
-- canonical live URL 內容正確
-- 若有 long / legacy URL，也已驗證行為符合預期
+An article is complete only when all conditions hold:
+
+- Repository updated.
+- Deploy succeeded.
+- Canonical live URL content is correct.
+- Long or legacy URLs, when present, behave as expected.

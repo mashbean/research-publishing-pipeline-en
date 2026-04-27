@@ -23,7 +23,7 @@ from pathlib import Path
 from lib import resolve_job_dir, load_state, save_state, now_iso, ROOT
 
 
-# ─── Structured output section mappings ─────────────────────────────
+# --- Structured output section mappings ---
 
 SECTION_FILE_MAP = {
     "research_summary":  "notes/research-summary.md",
@@ -44,83 +44,83 @@ REQUIRED_SECTIONS = {"evidence_map"}
 RECOMMENDED_SECTIONS = {"reasoning_chain", "case_comparison", "source_registry"}
 
 
-# ─── Output format specification (appended to every prompt) ─────────
+# --- Output format specification, appended to every prompt ---
 
 OUTPUT_FORMAT_SPEC = """
-## 輸出格式要求
+## Output Format Requirement
 
-請使用以下結構輸出。每個章節用 `<!-- SECTION: name -->` 標記開頭。
-這些標記讓下游工具可以自動拆分你的研究成果。
+Use the following structure. Each section must begin with `<!-- SECTION: name -->`.
+These markers allow downstream tools to split your research output automatically.
 
-必要章節（按順序）：
+Required sections, in order:
 
 <!-- SECTION: research_summary -->
-# 研究摘要
-[2-3 段概述]
+# Research Summary
+[2 to 3 paragraph summary]
 
 <!-- SECTION: reasoning_chain -->
-# 推理鏈
+# Reasoning Chain
 
-## 核心問題
-[一句話]
+## Core Question
+[One sentence]
 
-## 推理路徑
+## Reasoning Path
 
-### Sub-Arg 1: [名稱]
-- **主張**: ...
-- **推理類型**: D(演繹) / I(歸納) / A(類比) / Ab(溯因) / C(因果)
-- **支撐證據**:
-  1. [A/B/C 級] 來源 → 關鍵發現
-- **推理強度**: 強/中/弱
-- **反例/限制**: ...
+### Sub-Arg 1: [name]
+- **Claim**: ...
+- **Reasoning type**: D deduction / I induction / A analogy / Ab abduction / C causal
+- **Supporting evidence**:
+  1. [A/B/C grade] source -> key finding
+- **Reasoning strength**: strong/medium/weak
+- **Counterexamples or limits**: ...
 
 ### Sub-Arg N: ...
 
-## 合成結論
-- **結論**: ...
-- **推理路徑**: Sub-Arg 1 (I) + Sub-Arg 2 (C) → Synthesis
-- **已知盲點**: ...
+## Synthesis
+- **Conclusion**: ...
+- **Reasoning path**: Sub-Arg 1 (I) + Sub-Arg 2 (C) -> Synthesis
+- **Known blind spots**: ...
 
 <!-- SECTION: evidence_map -->
-# 證據對照表
+# Evidence Map
 
-| # | 主張 | 來源 | 來源等級 | 信心度 | 查閱日期 | 備註 |
+| # | Claim | Source | Source grade | Confidence | Access date | Notes |
 |---|------|------|---------|--------|---------|------|
 
 <!-- SECTION: source_registry -->
-# 來源清冊
+# Source Registry
 
-## 學術文獻
+## Academic Literature
 - Author (Year). *Title*. Publisher. DOI/URL
 
-## 官方文件
-- Org. "Title." URL (查閱日期)
+## Official Documents
+- Org. "Title." URL. Accessed YYYY-MM-DD.
 
-## 案例與報導
-- Source. "Title." URL (查閱日期)
+## Cases and Reporting
+- Source. "Title." URL. Accessed YYYY-MM-DD.
 
 <!-- SECTION: case_comparison -->
-# 案例正反對照
+# Plus/Minus Case Comparison
 
-| 類別 | 成功案例 | 失敗案例 | 對照意義 |
+| Category | Success case | Failure case | Comparison value |
 |------|---------|---------|---------|
 
-每個案例附結構化資料（名稱、類型、成立年、狀態、法律結構、收入模式、年收入、使用者規模、治理模式、關鍵風險）。
+Add structured data for each case: name, type, founding year, status, legal structure, revenue model, annual revenue, user scale, governance model, and key risks.
 
 <!-- SECTION: high_risk_claims -->
-# 高風險主張
+# High-Risk Claims
 
-| # | 主張 | 風險類型 | 說明 | 建議處理 |
+| # | Claim | Risk type | Explanation | Suggested handling |
 |---|------|---------|------|---------|
 
-風險類型：因果混淆 / 倖存者偏差 / 範疇滑移 / 數據過時 / 來源不足
+Risk types: causal confusion / survivorship bias / category drift / stale data / insufficient sources
 
 <!-- SECTION: open_questions -->
-# 未解問題
+# Open Questions
 - [ ] ...
 
 <!-- SECTION: rewrite_warnings -->
-# 改寫注意事項
+# Rewrite Warnings
 - ...
 """.strip()
 
@@ -141,16 +141,16 @@ def generate_prompt(job_dir: Path) -> int:
     brief_template = (ROOT / "prompts" / "deep-research-brief.md").read_text()
 
     # Build the full prompt
-    sections = [brief_template, "", "---", "", "# 研究包參數", ""]
+    sections = [brief_template, "", "---", "", "# Research Packet Parameters", ""]
 
     # Core fields
-    sections.append(f"## 主題\n{intake.get('title_hint', packet.get('topic', ''))}")
-    sections.append(f"\n## 核心問題")
+    sections.append(f"## Topic\n{intake.get('title_hint', packet.get('topic', ''))}")
+    sections.append(f"\n## Core Question")
     for q in _as_list(intake.get("core_question", packet.get("core_question", []))):
         sections.append(f"- {q}")
 
     sections.append(f"\n## Working Thesis\n{intake.get('working_thesis', packet.get('working_thesis', ''))}")
-    sections.append(f"\n## 目標讀者\n{intake.get('audience', packet.get('target_audience', ''))}")
+    sections.append(f"\n## Target Audience\n{intake.get('audience', packet.get('target_audience', ''))}")
 
     # Seed draft
     seed = packet.get("seed_draft", "").strip()
@@ -160,65 +160,65 @@ def generate_prompt(job_dir: Path) -> int:
     # Candidate sources
     sources = packet.get("candidate_sources", [])
     if sources and sources != [{"title": "", "url": "", "reason": ""}]:
-        sections.append("\n## 候選來源")
+        sections.append("\n## Candidate Sources")
         for s in sources:
             if isinstance(s, dict) and s.get("title"):
-                sections.append(f"- **{s['title']}** — {s.get('url', '')} ({s.get('reason', '')})")
+                sections.append(f"- **{s['title']}** - {s.get('url', '')} ({s.get('reason', '')})")
 
     # Must-use / must-not-use
     must_use = packet.get("must_use_sources", [])
     if must_use and must_use != [""]:
-        sections.append("\n## 必須使用的來源")
+        sections.append("\n## Must-Use Sources")
         for s in must_use:
             sections.append(f"- {s}")
 
     must_not = packet.get("must_not_use_sources", [])
     if must_not:
-        sections.append("\n## 禁止使用的來源")
+        sections.append("\n## Must-Not-Use Sources")
         for s in must_not:
             sections.append(f"- {s}")
 
     # Claims to verify
     claims = packet.get("claims_to_verify", [])
     if claims and claims != [""]:
-        sections.append("\n## 需要驗證的主張")
+        sections.append("\n## Claims to Verify")
         for c in claims:
             sections.append(f"- {c}")
 
     # Open questions
     oq = intake.get("open_questions", packet.get("open_questions", []))
     if oq and oq != [""]:
-        sections.append("\n## 待解問題")
+        sections.append("\n## Open Questions")
         for q in _as_list(oq):
             sections.append(f"- {q}")
 
     # Source collection requirements
-    sections.append("\n## 來源蒐集要求")
-    sections.append("- 每個論點的成功案例必須配對至少一個失敗案例（避免倖存者偏差）")
-    sections.append("- 來源必須涵蓋四象限：學術理論（正/反）× 真實案例（成功/失敗）")
-    sections.append("- 核心主張必須有 A 級來源（學術論文、官方文件、審計報告）")
-    sections.append("- 每個案例提供結構化資料（法律結構、收入模式、年收入、使用者規模、治理模式）")
-    sections.append("- 所有數字標明年份和來源，貨幣標明幣別")
+    sections.append("\n## Source Collection Requirements")
+    sections.append("- Pair every successful case with at least one failed case to avoid survivorship bias.")
+    sections.append("- Cover the four quadrants: academic theory, for and against, and real-world cases, successful and failed.")
+    sections.append("- Core claims must have A-grade sources such as academic papers, official documents, or audit reports.")
+    sections.append("- Provide structured data for each case, including legal structure, revenue model, annual revenue, user scale, and governance model.")
+    sections.append("- All numbers must include year and source. Currencies must be explicit.")
 
     # Constraints
-    sections.append("\n## 寫作限制")
+    sections.append("\n## Writing Constraints")
     for c in packet.get("style_constraints", []):
         sections.append(f"- {c}")
     for c in intake.get("must_avoid", []):
-        sections.append(f"- 禁止：{c}")
+        sections.append(f"- Avoid: {c}")
     for c in intake.get("must_do", []):
-        sections.append(f"- 必須：{c}")
+        sections.append(f"- Required: {c}")
 
-    sections.append("\n## 引用規範")
+    sections.append("\n## Citation Rules")
     for c in packet.get("citation_constraints", []):
         sections.append(f"- {c}")
 
     # Reasoning requirements
-    sections.append("\n## 推理要求")
-    sections.append("- 每個子論點標明推理類型：D(演繹) / I(歸納) / A(類比) / Ab(溯因) / C(因果)")
-    sections.append("- 因果主張必須區分「觀察到的相關性」和「驗證的因果關係」")
-    sections.append("- 每個因果主張必須附帶至少一個反事實問題")
-    sections.append("- 最終合成結論標明強度（強/中/弱）和已知盲點")
+    sections.append("\n## Reasoning Requirements")
+    sections.append("- Label each sub-argument with reasoning type: D deduction / I induction / A analogy / Ab abduction / C causal.")
+    sections.append("- Causal claims must distinguish observed correlation from verified causality.")
+    sections.append("- Every causal claim must include at least one counterfactual question.")
+    sections.append("- The final synthesis must mark conclusion strength as strong, medium, or weak and list known blind spots.")
 
     # Append structured output format
     sections.append(f"\n{OUTPUT_FORMAT_SPEC}")
@@ -235,7 +235,7 @@ def generate_prompt(job_dir: Path) -> int:
     state = load_state(job_dir)
     if state["status"] == "scoped":
         state["status"] = "researching"
-        state["nextStep"] = "等待 Deep Research 結果"
+        state["nextStep"] = "wait for Deep Research output"
         state["lastDeliverable"] = "prompts/deep-research-prompt.md"
         save_state(job_dir, state)
 
@@ -271,7 +271,7 @@ def integrate(job_dir: Path) -> int:
     raw = raw_path.read_text()
     written = []
 
-    # ── Strategy 1: Parse structured <!-- SECTION: name --> markers ──
+    # Strategy 1: parse structured <!-- SECTION: name --> markers.
     structured_sections = _parse_structured_sections(raw)
     if structured_sections:
         print(f"Found {len(structured_sections)} structured sections")
@@ -282,20 +282,20 @@ def integrate(job_dir: Path) -> int:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(content.strip() + "\n")
                 written.append(target_rel)
-                print(f"  → {target_rel} ({len(content)} chars)")
+                print(f"  -> {target_rel} ({len(content)} chars)")
 
-    # ── Strategy 2: Fallback to fuzzy header matching ──
+    # Strategy 2: fallback to fuzzy header matching.
     if not written:
         print("No structured markers found, trying fuzzy header matching...")
         header_sections = _split_sections(raw)
         fuzzy_mappings = {
-            "verification/evidence-map.md": ["evidence.map", "evidence map", "證據對照"],
-            "notes/source-notes.md": ["source.notes", "source notes", "來源筆記", "來源清冊"],
-            "verification/high-risk-claims.md": ["high.risk", "high risk", "高風險"],
-            "notes/research-summary.md": ["research.summary", "research summary", "研究摘要"],
-            "notes/reasoning-chain.md": ["reasoning", "推理鏈", "推理路徑"],
-            "notes/case-comparison.md": ["case.comparison", "案例", "正反對照"],
-            "notes/suggested-structure.md": ["suggested.structure", "structure", "建議結構"],
+            "verification/evidence-map.md": ["evidence.map", "evidence map"],
+            "notes/source-notes.md": ["source.notes", "source notes", "source registry"],
+            "verification/high-risk-claims.md": ["high.risk", "high risk"],
+            "notes/research-summary.md": ["research.summary", "research summary"],
+            "notes/reasoning-chain.md": ["reasoning", "reasoning chain", "reasoning path"],
+            "notes/case-comparison.md": ["case.comparison", "case comparison", "plus/minus"],
+            "notes/suggested-structure.md": ["suggested.structure", "structure"],
         }
         for target_rel, patterns in fuzzy_mappings.items():
             content = _find_section(header_sections, patterns)
@@ -305,15 +305,15 @@ def integrate(job_dir: Path) -> int:
                 target.write_text(content.strip() + "\n")
                 written.append(target_rel)
 
-    # ── Strategy 3: Last resort — whole file as research draft ──
+    # Strategy 3: last resort, save the whole file as research draft.
     if not written:
         draft = job_dir / "drafts" / "research-draft.md"
         draft.parent.mkdir(parents=True, exist_ok=True)
         draft.write_text(raw)
         written.append("drafts/research-draft.md")
-        print("No sections matched — saved entire output as research draft")
+        print("No sections matched - saved entire output as research draft")
 
-    # ── Quality gates ──
+    # Quality gates.
     missing_required = []
     missing_recommended = []
     for section in REQUIRED_SECTIONS:
@@ -325,7 +325,7 @@ def integrate(job_dir: Path) -> int:
         if target_rel and not (job_dir / target_rel).exists():
             missing_recommended.append(section)
 
-    # ── Update state ──
+    # Update state.
     state = load_state(job_dir)
     if state["status"] == "researching":
         if missing_required:
@@ -334,33 +334,33 @@ def integrate(job_dir: Path) -> int:
             state["nextStep"] = "Re-run Deep Research or manually create missing sections"
         elif (job_dir / "verification" / "evidence-map.md").exists():
             state["status"] = "evidence-mapped"
-            state["nextStep"] = "build reasoning chain → write research draft"
+            state["nextStep"] = "build reasoning chain -> write research draft"
         else:
             state["status"] = "drafted"
             state["nextStep"] = "fact-check research draft"
 
         state["lastDeliverable"] = written[-1]
         versions = state.setdefault("versions", [])
-        versions.append({"note": "Deep Research 結果整合完成", "at": now_iso()})
+        versions.append({"note": "Deep Research output integrated", "at": now_iso()})
         save_state(job_dir, state)
 
-    # ── Report ──
+    # Report.
     print(f"\nIntegrated {len(written)} files:")
     for w in written:
-        print(f"  ✓ {w}")
+            print(f"  OK {w}")
     if missing_recommended:
         print(f"\nRecommended but missing:")
         for m in missing_recommended:
-            print(f"  △ {m}")
+            print(f"  WARN {m}")
     if missing_required:
-        print(f"\nRequired but missing (status → needs-decision):")
+        print(f"\nRequired but missing (status -> needs-decision):")
         for m in missing_required:
-            print(f"  ✗ {m}")
+            print(f"  MISSING {m}")
 
     return 0
 
 
-# ─── Parsing helpers ─────────────────────────────────────────────────
+# --- Parsing helpers ---
 
 def _parse_structured_sections(text: str) -> dict[str, str]:
     """Parse <!-- SECTION: name --> markers."""

@@ -1,46 +1,49 @@
 # Citation Policy
 
-## 目標
+## Goal
 
-避免自引、錯引、假引、格式雜訊與內部稿件引用混進公開文章。
+Prevent self-citations, incorrect citations, invented citations, formatting noise, and internal draft references from entering public articles.
 
-## 引用分級
+## Source Grades
 
-### A 級
-- 學術論文
-- 法規原文
-- OECD / EU / 政府官方文件
-- 審計與監察報告
+### A Grade
 
-### B 級
-- 官方政策說明頁
-- 有明確責任主體的機構說明
+- Academic papers
+- Statutes and primary legal text
+- OECD, EU, and official government documents
+- Audit and oversight reports
 
-### C 級
-- 媒體報導
-- 二手摘要
-- 部落格與評論
+### B Grade
 
-規則：核心主張優先使用 A 級來源。B 級可輔助。C 級不可單獨支撐核心結論。
+- Official policy explainers
+- Institutional explainers with clear accountability
 
-## 禁止事項
+### C Grade
 
-- 不得把使用者原稿本身當成公開文章的外部引用
-- 不得使用 `mashbean, 2026` 這類自引 placeholder 進入公開稿
-- 不得保留 `filecite`、頁碼殘片、OCR 腳註編號殘留
-- 不得在未確認來源存在時寫入具體 citation
+- Media coverage
+- Secondary summaries
+- Blogs and commentary
 
-## 查核問題
+Rule: core claims should prefer A-grade sources. B-grade sources may support. C-grade sources must not support a core conclusion alone.
 
-每一個關鍵句都要問：
+## Prohibited
 
-1. 這句是事實、推論、還是修辭
-2. 是否有來源支撐
-3. 來源是否足夠強
-4. 是否過度延伸來源結論
-5. 是否應改寫成較穩健說法
+- Do not treat the user's own draft as an external source for the public article.
+- Do not let self-citation placeholders such as `mashbean, 2026` enter the public draft.
+- Do not keep `filecite`, page-number fragments, or OCR footnote residue.
+- Do not write a specific citation before confirming that the source exists.
 
-## 交付物
+## Fact-Check Questions
+
+Ask these questions for every key sentence:
+
+1. Is this sentence fact, inference, or rhetoric?
+2. Is it supported by a source?
+3. Is the source strong enough?
+4. Does the sentence overextend the source?
+5. Should it be rewritten more cautiously?
+
+## Deliverables
 
 - `verification/evidence-map.md`
 - `verification/fact-check-report.md`

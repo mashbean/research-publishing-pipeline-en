@@ -1,150 +1,163 @@
 # Workflow
 
-## 目標
+## Goal
 
-把研究文章生產拆成可驗收的階段，避免 research、writing、fact-check、publish 混成一團。
+Split research article production into reviewable stages so research, writing, fact-checking, and publishing do not collapse into one opaque task.
 
-## 狀態機
+## State Machine
 
+```text
+intake -> scoped -> researching -> evidence-mapped -> drafted ->
+fact-checking -> rewritten -> editorial-pass -> ready-to-publish ->
+published -> verified
 ```
-intake → scoped → researching → evidence-mapped → drafted →
-fact-checking → rewritten → editorial-pass → ready-to-publish →
-published → verified
-```
 
-例外狀態：
+Exception states:
 
 - `blocked`
 - `needs-decision`
 - `publish-failed`
 - `verification-failed`
 
-### 合法回退路徑
+### Valid Rollback Paths
 
-以下回退在生產中已驗證為必要：
+These rollbacks are expected in production:
 
-- `fact-checking → researching` — 發現 evidence gap 時需要補研究
-- `rewritten → fact-checking` — 改寫過程新增了未經查核的 claim
-- `editorial-pass → rewritten` — 發現重大結構或語氣問題需要重寫
+- `fact-checking -> researching`: more research is needed after an evidence gap is found.
+- `rewritten -> fact-checking`: the rewrite introduced new unverified claims.
+- `editorial-pass -> rewritten`: major structure or tone issues remain.
 
-回退時必須在 `state.json` 的 `versions[]` 記錄原因。
+Every rollback must record the reason in `state.json` under `versions[]`.
 
-## 每階段最小交付物
+## Minimum Deliverable by Stage
 
 ### intake
-- 題目或題目方向
-- 核心問題
-- 目標文體
-- 已知來源或線索
-- 禁則與限制
+
+- Topic or topic direction
+- Core question
+- Target format
+- Known sources or leads
+- Constraints and prohibited patterns
 
 ### scoped
-- 文章要回答什麼
-- 不回答什麼
-- working thesis
-- 高風險 claim 清單
+
+- What the article answers
+- What the article does not answer
+- Working thesis
+- High-risk claim list
 
 ### researching
-- `prompts/deep-research-prompt.md` — 自動產出
-- 初步來源蒐集
-- 來源可信度分級
+
+- `prompts/deep-research-prompt.md`, generated automatically
+- Initial source collection
+- Source credibility grading
 
 ### evidence-mapped
-- `verification/evidence-map.md` — claim 與 source 對照表
-- 主要論點有對應證據
+
+- `verification/evidence-map.md`, mapping claims to sources
+- Core arguments have matching evidence
 
 ### drafted
-- `drafts/research-draft.md` — 完整 research draft
-- 可容許報告腔，但不可發明引用
+
+- `drafts/research-draft.md`, a complete research draft
+- Report-like prose is acceptable, but citations must not be invented
 
 ### fact-checking
-- `verification/fact-check-report.md` — claim-by-claim 檢查
-- citation sanitation
-- 高風險主張標記
+
+- `verification/fact-check-report.md`, a claim-by-claim review
+- Citation sanitation
+- High-risk claim flags
 
 ### rewritten
-- `drafts/blog-rewrite.md` — 已轉成 blog 或指定文體
-- 已清除自引與禁用句型
+
+- `drafts/blog-rewrite.md`, converted into blog prose or the requested format
+- Self-citations and prohibited patterns removed
 
 ### editorial-pass
-- `verification/editorial-pass-report.md` — 自動化檢查報告
-- 文字順序、標題、首段、節奏完成
-- 沒有 prompt 洩漏或 PDF 腔
+
+- `verification/editorial-pass-report.md`, automated check report
+- Text order, headings, opening, and rhythm completed
+- No prompt leakage or PDF-summary voice
 
 ### ready-to-publish
-- `final/*.md` — frontmatter 完整
-- publish checklist 通過
+
+- `final/*.md`, with complete frontmatter
+- Publish checklist passes
 
 ### published
-- `publish/publish-record.json` — commit SHA + deploy run
-- commit + push 完成
-- deploy 已開始
+
+- `publish/publish-record.json`, including commit SHA and deploy run
+- Commit and push complete
+- Deploy started
 
 ### verified
-- `publish/live-check.json` — HTTP 驗證紀錄
-- deploy success
-- live URL 200
-- live title / lead / canonical 行為正確
 
-## 工作分層
+- `publish/live-check.json`, HTTP verification record
+- Deploy succeeded
+- Live URL returns 200
+- Live title, lead, and canonical behavior are correct
 
-### Writing pipeline
+## Work Layers
+
+### Writing Pipeline
+
 - intake
 - scope
-- research（自動產生 Deep Research prompt）
-- evidence map（自動整合 Deep Research 結果）
+- research, including generated Deep Research prompt
+- evidence map, including automatic integration of Deep Research output
 - draft
 - fact-check
 - rewrite
-- editorial pass（自動化禁則檢查）
+- editorial pass, including automated style-rule checks
 
-### Repo pipeline
+### Repo Pipeline
+
 - render blog markdown
 - write file
-- commit + push（自動回寫 state.json）
+- commit and push, then write state back automatically
 - watch deploy
-- live verify（自動回寫 state.json）
+- live verify, then write state back automatically
 
-規則：未完成 writing pipeline 前，不進 repo pipeline。
+Rule: do not enter the repo pipeline until the writing pipeline is complete.
 
-## 自動化腳本對照
+## Automation Script Map
 
-| 狀態轉換 | 腳本 | 自動化程度 |
+| State transition | Script | Automation level |
 |----------|------|-----------|
-| intake → scoped | `run_pipeline.py auto` | 自動（驗證 intake 欄位） |
-| scoped → researching | `run_deep_research.py generate-prompt` | 自動產生 prompt |
-| researching → evidence-mapped | `run_deep_research.py integrate` | 自動整合結果 |
-| drafted → fact-checking | `run_pipeline.py next` | 半自動（需人工 review） |
-| rewritten → editorial-pass | `run_editorial_pass.py --auto-advance` | 自動檢查 + 推進 |
-| ready-to-publish → published | `publish_blog_entry.py` | 自動（git + state） |
-| published → verified | `verify_publish.py` | 自動（HTTP + state） |
+| intake -> scoped | `run_pipeline.py auto` | Automatic intake validation |
+| scoped -> researching | `run_deep_research.py generate-prompt` | Automatic prompt generation |
+| researching -> evidence-mapped | `run_deep_research.py integrate` | Automatic result integration |
+| drafted -> fact-checking | `run_pipeline.py next` | Semi-automatic, requires human review |
+| rewritten -> editorial-pass | `run_editorial_pass.py --auto-advance` | Automatic check and advance |
+| ready-to-publish -> published | `publish_blog_entry.py` | Automatic git and state update |
+| published -> verified | `verify_publish.py` | Automatic HTTP and state update |
 
-## 多代理建議
+## Multi-Agent Guidance
 
-- `research`：來源蒐集、可信度分級、evidence map
-- `writer`：research draft、blog rewrite
-- `critic`：fact-check、找過度主張與 citation 斷點
-- `editor`：標題、首段、順稿、壓縮、語氣
-- `main`：狀態推進、repo 操作、發稿驗證
+- `research`: source collection, credibility grading, evidence map
+- `writer`: research draft and blog rewrite
+- `critic`: fact-checking, overclaim detection, and citation gaps
+- `editor`: title, opening, flow, compression, and tone
+- `main`: state advancement, repo operations, publishing, and verification
 
-## 自動續推原則
+## Automatic Progress Principle
 
-- 任何研究文章 job 一旦正式啟動，就必須自動切換成 `activeWork=true`
-- active 任務 10 分鐘檢查一次，直到 job 狀態進入 `verified`、`publish-failed`、`verification-failed`、`blocked` 或明確結案
-- 若無新進展，先做一個 safe self-push，再回報
-- 若 30 分鐘仍無實質進展，升級為 stalled watchdog
-- stalled 時必須指出 blocked reason 與 recovery action
-- 驗收目標：豆泥只要下啟動指令，工作流就自動往下跑，結束前不需要再額外下「請繼續」
+- Once a research article job starts, it should switch to `activeWork=true`.
+- Active tasks should be checked every 10 minutes until the job enters `verified`, `publish-failed`, `verification-failed`, `blocked`, or is explicitly closed.
+- If there is no new progress, perform a safe self-push before reporting.
+- If there is no meaningful progress for 30 minutes, escalate to a stalled watchdog.
+- When stalled, report the blocked reason and recovery action.
+- Acceptance target: once the user starts a job, the workflow keeps moving until completion without requiring repeated `please continue` prompts.
 
-## 版本追蹤
+## Version Tracking
 
-每次重大改版（Deep Research 整合、fact-check 後改稿、editorial pass 修正）必須在 `state.json` 的 `versions[]` 記錄：
+Record every major revision in `state.json` under `versions[]`, including Deep Research integration, post-fact-check rewrites, and editorial-pass fixes:
 
 ```json
 {
   "versions": [
-    {"note": "Deep Research 結果整合完成", "at": "2026-03-30T14:00:00+08:00"},
-    {"note": "fact-check 後重寫 v2", "at": "2026-03-30T16:00:00+08:00"}
+    {"note": "Deep Research output integrated", "at": "2026-03-30T14:00:00+08:00"},
+    {"note": "post-fact-check rewrite v2", "at": "2026-03-30T16:00:00+08:00"}
   ]
 }
 ```

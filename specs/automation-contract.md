@@ -2,44 +2,44 @@
 
 ## Goal
 
-研究文章 job 一旦啟動，就自動進入強制 active reminder 模式；只有結案或明確失敗時才退出。
+Once a research article job starts, it automatically enters active reminder mode. It exits only when the job is closed or has clearly failed.
 
-## Start semantics
+## Start Semantics
 
-當使用者下達啟動研究文章任務的指令時，系統應在建立 job 後立刻同步更新 `memory/automation-state.json`：
+When the user starts a research article task, the system should update `memory/automation-state.json` immediately after creating the job:
 
 - `activeWork = true`
 - `mode = "active"`
-- `taskTitle = <job id 或文章題目>`
-- `taskNote = <本次任務描述>`
-- `nextDeliverable = <最近一步最小交付物>`
+- `taskTitle = <job id or article title>`
+- `taskNote = <task description>`
+- `nextDeliverable = <nearest minimum deliverable>`
 - `lastMeaningfulProgressAt = now`
 - `lastUpdated = now`
 
-## While running
+## While Running
 
-- 10 分鐘 active checker 持續觸發
-- 若無新進展，必須先做一個 safe self-push，再回報
-- 30 分鐘 stall watchdog 若判定卡住，必須升級回報 blocked reason 與 recovery action
+- The active checker continues every 10 minutes.
+- If there is no new progress, perform a safe self-push before reporting.
+- If the 30-minute stall watchdog determines the task is stuck, escalate with a blocked reason and recovery action.
 
-## End semantics
+## End Semantics
 
-當 job 狀態進入下列任一條件時，系統應更新 `memory/automation-state.json` 並退出 active 模式：
+When the job enters any of the following states, update `memory/automation-state.json` and exit active mode:
 
 - `verified`
 - `publish-failed`
 - `verification-failed`
 - `blocked`
-- 明確人工結案
+- explicit human closure
 
-退出時應寫入：
+On exit, write:
 
 - `activeWork = false`
 - `mode = "idle"`
-- 清空 `taskTitle` / `taskNote` / `nextDeliverable`
-- 保留 `lastDeliverable`
-- 更新 `lastDeliverableAt` / `lastMeaningfulProgressAt` / `lastUpdated`
+- empty `taskTitle`, `taskNote`, and `nextDeliverable`
+- preserve `lastDeliverable`
+- update `lastDeliverableAt`, `lastMeaningfulProgressAt`, and `lastUpdated`
 
-## Acceptance target
+## Acceptance Target
 
-豆泥只要下啟動指令，文章 job 就自己往下跑，並在沒有結束前維持 10 分鐘強制提醒模式，不需要額外再補一句「請繼續」。
+Once the user starts the article job, it keeps moving through the workflow and maintains 10-minute active reminders until completion. The user should not need to add repeated `please continue` prompts.

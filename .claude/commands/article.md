@@ -5,21 +5,23 @@ allowed-tools: Agent, Bash, Read, Write, Edit, Glob, Grep, TodoWrite
 
 # Article Pipeline Command
 
-使用者要求啟動或繼續一篇研究文章。
+The user wants to start or continue a research article.
 
-## 指令
+## Instructions
 
-找到 pipeline 根目錄（含 `CLAUDE.md` 的 `research-publishing-pipeline/` 資料夾），讀取其中的 `CLAUDE.md` 了解完整流程。
+Find the pipeline root directory, which is the `research-publishing-pipeline/` folder containing `CLAUDE.md`, then read `CLAUDE.md` for the full workflow.
 
-提示：pipeline 可能在以下位置之一：
+The pipeline may be in one of these locations:
+
 - `tools/research-publishing-pipeline/`
-- 專案根目錄（如果此 repo 本身就是 pipeline）
+- The project root, if this repository is the pipeline
 
-## 如果使用者提供了題目（新文章）
+## If the User Provides a Topic for a New Article
 
-1. 從使用者訊息中提取：title, audience, core_question, thesis
-2. 產生 job-id（格式：`YYYY-MM-DD-topic-slug`）
-3. 進入 pipeline 目錄，執行：
+1. Extract `title`, `audience`, `core_question`, and `thesis` from the user's message.
+2. Generate a job ID in the format `YYYY-MM-DD-topic-slug`.
+3. Enter the pipeline directory and run:
+
 ```bash
 python3 scripts/start_article_job.py <job-id> \
   --title "<title>" \
@@ -28,21 +30,26 @@ python3 scripts/start_article_job.py <job-id> \
   --thesis "<thesis>"
 python3 scripts/run_pipeline.py <job-id> auto
 ```
-4. 根據 CLAUDE.md 的指示，用 subagent 分派 research → writer → critic → editor
-5. 在需要人工確認的步驟暫停
 
-## 如果使用者要繼續現有文章
+4. Follow `CLAUDE.md` to dispatch research, writer, critic, and editor subagents.
+5. Pause at steps that require human confirmation.
 
-1. 找到最新的 job：
+## If the User Wants to Continue an Existing Article
+
+1. Find the newest job:
+
 ```bash
 ls -t <pipeline-dir>/jobs/ | head -5
 ```
-2. 查看狀態：
+
+2. Check its status:
+
 ```bash
 python3 scripts/run_pipeline.py <job-id> status
 ```
-3. 根據當前狀態繼續下一步
 
-## 使用者的輸入
+3. Continue from the current state.
+
+## User Input
 
 $ARGUMENTS

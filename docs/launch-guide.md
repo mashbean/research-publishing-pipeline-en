@@ -1,157 +1,154 @@
-# 啟動指南：Chat / Cowork / Code
+# Launch Guide: Chat / Cowork / Code
 
-三種環境各有不同的啟動方式和適用場景。
+The pipeline can be used across three environments, each with a different role.
 
----
+## Short-Term Setup
 
-## 短期方案（現在就能用）
+### Chat: claude.ai Conversation Mode
 
-### Chat（claude.ai 對話模式）
+**Best for**: exploring topics, initial research, and interacting with Deep Research.
 
-**適用場景**：探索題目、初步研究、跟 Deep Research 互動
+**How to start**:
 
-**啟動方式**：
+1. Paste your topic and questions into Chat.
+2. Ask Claude to produce structured research notes using `deep-research-packet.yaml` as the reference format.
+3. Save the research output as a `.md` file.
 
-1. 在 Chat 中貼上你的題目和問題
-2. 要求 Claude 產出結構化研究筆記，格式參照 `deep-research-packet.yaml`
-3. 將 Chat 的研究成果複製出來，存成 `.md` 檔
+**Example prompt**:
 
-**範例 prompt**：
+```text
+I want to write an English blog post about the sustainability of nonprofit platforms.
+Core question: Can nonprofit social platforms survive over the long term?
+Please research:
+1. Five relevant cases, including at least two failures.
+2. Revenue structure and governance model for each case.
+3. Claims that need stronger sources.
+Output format: evidence_map + source_notes + high_risk_claims
 ```
-我要寫一篇繁體中文 blog，主題是「非營利平台的永續經營」。
-核心問題：非營利的社群平台能活下去嗎？
-請幫我做以下研究：
-1. 找出 5 個相關案例（至少 2 個失敗的）
-2. 每個案例的收入結構和治理模式
-3. 標記哪些主張需要更強的來源
-輸出格式：evidence_map + source_notes + high_risk_claims
-```
 
-**接回 pipeline**：
+**Bring the output back into the pipeline**:
+
 ```bash
-# 將 Chat 的研究結果存檔
+# Save the Chat research output
 pbpaste > raw/deep-research-output.md  # macOS
 python3 scripts/run_deep_research.py <job-id> save-raw raw/deep-research-output.md
 python3 scripts/run_deep_research.py <job-id> integrate
 ```
 
----
+### Cowork: claude.ai Artifacts
 
-### Cowork（claude.ai 協作模式 / Artifacts）
+**Best for**: co-writing, live editing, and discussing rewrite direction.
 
-**適用場景**：文章共寫、即時編輯、討論修改方向
+**How to start**:
 
-**啟動方式**：
+1. Open an Artifact in Cowork.
+2. Paste `drafts/research-draft.md` or `drafts/blog-rewrite.md`.
+3. Work with Claude on the rewrite.
 
-1. 在 Cowork 中開啟一個 Artifact
-2. 貼上 `drafts/research-draft.md` 或 `drafts/blog-rewrite.md`
-3. 與 Claude 協作改寫
+**Example prompt**:
 
-**範例 prompt**：
+```text
+This is my research draft in the Artifact.
+Please turn it into blog prose and follow these rules:
+- Avoid repetitive not-X-but-Y framing.
+- Avoid report-like scaffolding.
+- Avoid colon overuse in body prose.
+- Make the opening tell readers what question the article answers.
 ```
-這是我的研究草稿（見 Artifact）。
-請幫我轉成 blog 文體，注意以下禁則：
-- 禁止「不是……而是……」句型
-- 禁止報告腔
-- 禁止正文濫用冒號
-- 開頭要讓讀者知道這篇在回答什麼
-```
 
-**接回 pipeline**：
+**Bring the output back into the pipeline**:
+
 ```bash
-# 從 Cowork 複製修改後的文章
+# Save the revised Cowork article
 pbpaste > drafts/blog-rewrite.md
 python3 scripts/update_job_state.py <job-id> --status rewritten \
   --last-deliverable drafts/blog-rewrite.md \
-  --add-version-note "Cowork 協作改寫完成"
+  --add-version-note "Cowork rewrite completed"
 ```
 
----
+### Code: Claude Code CLI
 
-### Code（Claude Code CLI）
+**Best for**: full workflow automation, subagent dispatch, publishing, and verification.
 
-**適用場景**：全流程自動化、subagent 調度、發稿驗證
-
-**啟動方式**：
+**How to start**:
 
 ```bash
 cd tools/research-publishing-pipeline
 
-# 一鍵建立 + 自動推進
+# Create a job and advance it automatically
 python3 scripts/start_article_job.py 2026-04-01-my-topic \
-  --title "文章標題" \
-  --audience "讀者" \
-  --core-question "核心問題" \
-  --thesis "假說"
+  --title "Article title" \
+  --audience "Readers" \
+  --core-question "Core question" \
+  --thesis "Working thesis"
 
 python3 scripts/run_pipeline.py 2026-04-01-my-topic auto
 ```
 
-然後 Claude Code 會自動用 subagent 跑完 research → draft → fact-check → rewrite → editorial pass。
+Claude Code then runs the research, draft, fact-check, rewrite, and editorial-pass stages with subagents.
 
-需要人工介入時 pipeline 會停下。完成 fact-check review 後：
+When the pipeline stops for human input, review the relevant output and continue:
+
 ```bash
 python3 scripts/run_pipeline.py 2026-04-01-my-topic auto
 ```
 
----
+## Medium-Term Setup
 
-## 中期方案（subagent 調度）
+### Full Subagent Flow in Code
 
-### Code 環境的 subagent 全自動流程
+In Claude Code, say:
 
-在 Claude Code 中直接說：
-
-```
-幫我寫一篇 blog，主題是「非營利平台能不能活下去」，
-核心問題是「非營利社群平台有沒有永續經營的可能」，
-讀者是關注數位治理的人。
-用 research-publishing-pipeline 跑完整流程。
+```text
+Help me write a blog post about whether nonprofit platforms can survive.
+The core question is whether nonprofit social platforms can operate sustainably.
+The audience is people interested in digital governance.
+Use research-publishing-pipeline to run the full workflow.
 ```
 
-Claude Code 會：
-1. 讀取 `CLAUDE.md` 了解流程
-2. 建立 job
-3. 自動 spawn research subagent → writer subagent → critic subagent → editor subagent
-4. 在 fact-check 完成後暫停，等你確認
-5. 確認後自動 publish + verify
+Claude Code will:
 
-### 跨環境協作流程（推薦）
+1. Read `CLAUDE.md` for the workflow.
+2. Create a job.
+3. Dispatch research, writer, critic, and editor subagents.
+4. Pause after fact-checking for confirmation.
+5. Publish and verify after confirmation.
 
-```
+### Cross-Environment Workflow
+
+```text
 Chat           Cowork          Code
- │               │               │
- ├─ 探索題目      │               │
- ├─ Deep Research │               │
- │               │               │
- │    save-raw ──────────────────→├─ integrate
- │               │               ├─ auto (draft → fact-check)
- │               │               │
- │               ├─ 協作改寫 ←────┤  (export blog-rewrite.md)
- │               ├─ 來回修改      │
- │               │               │
- │    pbpaste ───────────────────→├─ editorial pass
- │               │               ├─ publish
- │               │               ├─ verify
- │               │               └─ done ✓
+ |               |               |
+ +-- explore     |               |
+ +-- research    |               |
+ |               |               |
+ |    save-raw ----------------->+-- integrate
+ |               |               +-- auto (draft -> fact-check)
+ |               |               |
+ |               +-- rewrite <---+  (export blog-rewrite.md)
+ |               +-- revise      |
+ |               |               |
+ |    pbpaste ------------------>+-- editorial pass
+ |               |               +-- publish
+ |               |               +-- verify
+ |               |               +-- done
 ```
 
-**關鍵原則**：
-- **Chat** 負責發散思考和 Deep Research
-- **Cowork** 負責文章共寫和即時編輯
-- **Code** 負責狀態管理、品質檢查和發稿
+**Principles**:
 
----
+- Chat handles exploration and Deep Research.
+- Cowork handles co-writing and live editing.
+- Code handles state management, quality checks, publishing, and verification.
 
-## 三環境快速對照
+## Quick Comparison
 
-| 動作 | Chat | Cowork | Code |
+| Action | Chat | Cowork | Code |
 |------|------|--------|------|
-| 探索題目 | ✓ 最佳 | ○ 可用 | △ 太重 |
-| Deep Research | ✓ 最佳 | △ 不適合 | ○ 用 subagent |
-| 文章共寫 | ○ 可用 | ✓ 最佳 | ○ 用 subagent |
-| 禁則檢查 | △ 手動 | △ 手動 | ✓ 全自動 |
-| Fact-check | ○ 可用 | ○ 可用 | ✓ 用 subagent |
-| 發稿 | ✗ 無法 | ✗ 無法 | ✓ 唯一管道 |
-| 驗證 | ✗ 無法 | ✗ 無法 | ✓ 全自動 |
-| 狀態管理 | ✗ 無法 | ✗ 無法 | ✓ 全自動 |
+| Explore topic | Best | Usable | Too heavy |
+| Deep Research | Best | Poor fit | Possible with subagent |
+| Co-write article | Usable | Best | Possible with subagent |
+| Style-rule checks | Manual | Manual | Automated |
+| Fact-check | Usable | Usable | Subagent |
+| Publish | Not available | Not available | Primary path |
+| Verify | Not available | Not available | Automated |
+| State management | Not available | Not available | Automated |

@@ -44,7 +44,7 @@ def main() -> int:
             return 1
         if not args.force and not is_valid_transition(current, args.status):
             print(
-                f"Invalid transition: {current} → {args.status}. "
+                f"Invalid transition: {current} -> {args.status}. "
                 f"Use --force to override.",
                 file=sys.stderr,
             )
@@ -81,7 +81,7 @@ def main() -> int:
         versions.append({"note": args.add_version_note, "at": now_iso()})
 
     save_state(job_dir, state)
-    print(f"[{state['jobId']}] {current} → {state['status']}")
+    print(f"[{state['jobId']}] {current} -> {state['status']}")
     return 0
 
 

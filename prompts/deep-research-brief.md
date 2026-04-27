@@ -1,61 +1,64 @@
 # Deep Research Brief Prompt
 
-請根據輸入的研究包參數工作。
+Work from the supplied research packet parameters.
 
-你的任務不是直接產出最終可發稿文章，而是建立一份結構化的研究包，供後續 writer / critic / editor 使用。
+Your task is not to produce the final publishable article. Your task is to build a structured research packet for the later writer, critic, and editor stages.
 
-## 你要做的事
+## What to Do
 
-### 1. 建立推理鏈（最重要）
+### 1. Build the Reasoning Chain
 
-從核心問題推出 3-5 個子論點，形成：
+Derive 3 to 5 sub-arguments from the core question:
+
+```text
+Core question -> Sub-Arg 1 + Sub-Arg 2 + ... -> Synthesis
 ```
-核心問題 → Sub-Arg 1 + Sub-Arg 2 + ... → 合成結論
-```
 
-每個子論點必須標明：
-- **推理類型**：D(演繹) / I(歸納) / A(類比) / Ab(溯因) / C(因果)
-- **支撐證據**：至少一個 A 或 B 級來源
-- **推理強度**：強 / 中 / 弱
-- **反例或限制**：什麼情況下這個論點不成立？
+Each sub-argument must include:
 
-因果主張（C）的特別要求：
-- 必須區分「觀察到的相關性」和「驗證的因果關係」
-- 必須附帶至少一個反事實問題（如果 X 沒發生，Y 還會發生嗎？）
+- **Reasoning type**: D deduction / I induction / A analogy / Ab abduction / C causal
+- **Supporting evidence**: at least one A-grade or B-grade source
+- **Reasoning strength**: strong / medium / weak
+- **Counterexamples or limits**: when would this argument fail?
 
-### 2. 四象限來源蒐集
+Special requirements for causal claims:
 
-來源必須涵蓋四個象限：
+- Distinguish observed correlation from verified causality.
+- Include at least one counterfactual question, such as `If X had not happened, would Y still have happened?`
 
-|           | 學術理論 | 真實案例 |
-|-----------|---------|---------|
-| 成功/正面 | ≥2 來源 | ≥2 案例 |
-| 失敗/負面 | ≥1 來源 | ≥2 案例 |
+### 2. Collect Four-Quadrant Sources
 
-- 成功案例數 ≤ 失敗案例數 + 1（避免倖存者偏差）
-- 不能只有歐美案例
-- 每個案例提供結構化資料（法律結構、收入模式、年收入、使用者規模、治理模式、失敗原因）
+Sources must cover four quadrants:
+
+| | Academic theory | Real-world cases |
+|---|---|---|
+| Successful/plus | at least 2 sources | at least 2 cases |
+| Failed/minus | at least 1 source | at least 2 cases |
+
+- Successful cases must be no more than failed cases plus one.
+- Do not rely only on Europe and North America.
+- Provide structured data for each case: legal structure, revenue model, annual revenue, user scale, governance model, and failure mode.
 
 ### 3. Evidence Map
 
-建立 claim → source 對照表，每個 claim 標明來源等級和查閱日期。
+Build a claim-to-source table. For each claim, include source grade and access date.
 
-### 4. 高風險主張標記
+### 4. High-Risk Claims
 
-標記類型：因果混淆 / 倖存者偏差 / 範疇滑移 / 數據過時 / 來源不足
+Flag these risk types: causal confusion, survivorship bias, category drift, stale data, and insufficient sources.
 
-### 5. 引用處理
+### 5. Citation Handling
 
-- 所有數字標明年份、幣別、來源
-- 優先使用 A 級來源（學術論文、官方文件、審計報告）
-- C 級來源（媒體）不可單獨支撐核心結論
-- 提供完整 URL 或 DOI
+- All numbers must include year, currency, and source.
+- Prefer A-grade sources such as academic papers, official documents, and audit reports.
+- C-grade sources such as media coverage must not support core conclusions alone.
+- Provide full URLs or DOIs.
 
-## 不要做的事
+## What Not to Do
 
-- 不要把使用者原稿本身當成外部引用
-- 不要使用 `mashbean, 2026` 這類自引 placeholder
-- 不要憑空補 citation
-- 不要直接交付最終發稿版本
-- 不要用 prompt 語言寫正文
-- 不要只寫成功案例（必須有失敗對照）
+- Do not treat the user's own draft as an external source.
+- Do not use self-citation placeholders such as `mashbean, 2026`.
+- Do not invent citations.
+- Do not deliver the final publishable article.
+- Do not write visible prompt language into the article body.
+- Do not provide only success cases. Failed-case comparison is required.

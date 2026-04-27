@@ -8,7 +8,7 @@ from pathlib import Path
 from lib import resolve_job_dir, load_state
 
 
-# Required deliverables by status (cumulative — each stage adds to prior)
+# Required deliverables by status. Each stage adds to the prior stage.
 REQUIRED_FILES: dict[str, list[str]] = {
     "intake": [
         "intake.yaml",
@@ -120,15 +120,15 @@ def main() -> int:
 
     print(f"Job: {result['jobId']}")
     print(f"Status: {result['status']}")
-    print(f"Complete: {'✓' if result['complete'] else '✗'}")
+    print(f"Complete: {'yes' if result['complete'] else 'no'}")
     if result["present"]:
         print(f"Present ({len(result['present'])}):")
         for f in result["present"]:
-            print(f"  ✓ {f}")
+            print(f"  OK {f}")
     if result["missing"]:
         print(f"Missing ({len(result['missing'])}):")
         for f in result["missing"]:
-            print(f"  ✗ {f}")
+            print(f"  MISSING {f}")
 
     return 0 if result["complete"] else 1
 

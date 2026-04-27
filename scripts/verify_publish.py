@@ -82,7 +82,7 @@ def main() -> int:
         elif url:
             state.setdefault("publish", {})["canonicalUrl"] = url
         versions = state.setdefault("versions", [])
-        versions.append({"note": f"Live URL 驗證通過: {url}", "at": now_iso()})
+        versions.append({"note": f"Live URL verification passed: {url}", "at": now_iso()})
     else:
         state["status"] = "verification-failed"
         state["blockedReason"] = f"Expected '{expected}' not found at {url}"

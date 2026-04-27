@@ -1,26 +1,29 @@
-# 推理鏈
+# Reasoning Chain
 
-## 核心問題
+## Core Question
 
-[一句話]
+[One sentence]
 
-## 推理路徑
+## Reasoning Path
 
-### Sub-Arg 1: [子論點名稱]
-- **主張**: [一句話]
-- **推理類型**: [D/I/A/Ab/C]
-- **支撐證據**:
-  1. [A/B/C 級] 來源 → 關鍵發現
-  2. [A/B/C 級] 來源 → 關鍵發現
-- **推理強度**: [強/中/弱]
-- **反例/限制**: [什麼情況下不成立]
-- **反事實問題**: [如果 X 沒發生，Y 還會嗎？]（因果主張必填）
+### Sub-Arg 1: [sub-argument name]
 
-### Sub-Arg 2: [子論點名稱]
+- **Claim**: [one sentence]
+- **Reasoning type**: [D/I/A/Ab/C]
+- **Supporting evidence**:
+  1. [A/B/C grade] source -> key finding
+  2. [A/B/C grade] source -> key finding
+- **Reasoning strength**: [strong/medium/weak]
+- **Counterexamples or limits**: [when would this not hold?]
+- **Counterfactual question**: [If X had not happened, would Y still have happened? Required for causal claims.]
+
+### Sub-Arg 2: [sub-argument name]
+
 ...
 
-## 合成結論
-- **從 Sub-Args 推出**: [結論]
-- **推理路徑**: Sub-Arg 1 (I) + Sub-Arg 2 (C) → Synthesis (Ab)
-- **結論強度**: [強/中/弱]
-- **已知盲點**: [尚未處理的反證或替代解釋]
+## Synthesis
+
+- **Derived from sub-arguments**: [conclusion]
+- **Reasoning path**: Sub-Arg 1 (I) + Sub-Arg 2 (C) -> Synthesis (Ab)
+- **Conclusion strength**: [strong/medium/weak]
+- **Known blind spots**: [unaddressed counterevidence or alternative explanations]

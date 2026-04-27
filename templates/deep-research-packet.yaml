@@ -4,18 +4,18 @@ working_thesis: ""
 article_type: blog_article
 target_audience: ""
 
-# 給 Deep Research 的最小上下文
+# Minimal context for Deep Research.
 input_prompt: |
-  請根據以下研究問題、既有正文與候選來源，補強論證、補齊證據、指出高風險主張，並產出可供後續 blog 重寫使用的研究包。
-  不要直接生成最終發稿文。
-  不要使用自我引用或不存在的來源。
-  若證據不足，請明確標示為待查核。
+  Use the research question, existing draft, and candidate sources below to strengthen the argument, fill evidence gaps, identify high-risk claims, and produce a research packet for the later blog rewrite.
+  Do not generate the final publishable article.
+  Do not use self-citations or nonexistent sources.
+  If evidence is insufficient, mark the claim as needs verification.
 
-# 第一版正文、舊稿、或使用者提供文本
+# First draft, older draft, or user-provided text.
 seed_draft: |
   
 
-# 候選來源：可以是已知論文、法規、政策文件、審計報告
+# Candidate sources can include known papers, statutes, policy documents, and audit reports.
 candidate_sources:
   - title: ""
     url: ""
@@ -25,8 +25,8 @@ must_use_sources:
   - ""
 
 must_not_use_sources:
-  - "使用者原稿本身作為外部引用"
-  - "自我引用 placeholder，例如 mashbean, 2026"
+  - "user draft as an external source"
+  - "self-citation placeholders such as mashbean, 2026"
 
 claims_to_verify:
   - ""
@@ -35,13 +35,13 @@ open_questions:
   - ""
 
 style_constraints:
-  - "最終會轉成繁體中文 blog 長文"
-  - "避免報告腔與執行摘要腔"
-  - "不要產生 prompt 洩漏語句"
+  - "final output will become a long-form English blog article"
+  - "avoid report-like and executive-summary prose"
+  - "do not generate visible prompt leakage"
 
 citation_constraints:
-  - "優先使用學術論文、官方文件、法規、審計報告"
-  - "若證據不夠，不要強行下結論"
+  - "prefer academic papers, official documents, statutes, and audit reports"
+  - "do not force a conclusion when evidence is insufficient"
 
 expected_outputs:
   - evidence_map

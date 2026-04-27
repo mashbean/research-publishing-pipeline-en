@@ -10,36 +10,33 @@ from pathlib import Path
 from lib import resolve_job_dir, load_state, save_state, now_iso
 
 
-# --- Style rules from style-policy-zh.md ---
+# --- Style rules from style-policy-en.md ---
 
 BANNED_PATTERNS = [
-    (r"不是[^，。\n]{0,20}，\s*而是", "「不是……而是……」句型"),
-    (r"不只[^，。\n]{0,20}，\s*而是", "「不只……而是……」句型"),
-    (r"不是\s*A[^，。\n]{0,10}，\s*而是\s*B", "「不是A而是B」句型"),
-    (r"不[^，。\n]{0,15}，\s*而[^，。\n]{0,15}", "「不……而……」句型"),
+    (r"\bnot\b[^.\n]{0,80}\bbut\b", "not-X-but-Y framing"),
+    (r"\bnot only\b[^.\n]{0,80}\bbut also\b", "not-only-but-also framing"),
 ]
 
 REPORT_TONE_PATTERNS = [
-    (r"本文將", "報告腔：「本文將」"),
-    (r"本文依據", "報告腔：「本文依據」"),
-    (r"研究目的在於", "報告腔：「研究目的在於」"),
-    (r"本研究", "報告腔：「本研究」"),
-    (r"綜上所述", "報告腔：「綜上所述」"),
+    (r"\bthis article will\b", "report scaffolding: this article will"),
+    (r"\bthis paper (argues|will|examines|explores)\b", "report scaffolding: this paper"),
+    (r"\bthe purpose of this research is\b", "report scaffolding: purpose statement"),
+    (r"\bin conclusion\b", "report scaffolding: in conclusion"),
 ]
 
 PROMPT_LEAK_PATTERNS = [
-    (r"我要維持的語氣", "Prompt 洩漏"),
-    (r"這裡需要更正式", "Prompt 洩漏"),
-    (r"請根據以下", "Prompt 洩漏"),
-    (r"你的任務是", "Prompt 洩漏"),
-    (r"我需要你", "Prompt 洩漏"),
+    (r"\bthe tone should be\b", "prompt leakage"),
+    (r"\bthis needs to be more formal\b", "prompt leakage"),
+    (r"\bbased on the following\b", "prompt leakage"),
+    (r"\byour task is\b", "prompt leakage"),
+    (r"\bi need you to\b", "prompt leakage"),
 ]
 
 SELF_CITATION_PATTERNS = [
     # TODO: Add your own name pattern, e.g.:
-    # (r"yourname,?\s*20\d{2}", "自我引用 placeholder"),
-    (r"filecite", "filecite 殘留"),
-    (r"【\d+†source】", "PDF source 殘留"),
+    # (r"yourname,?\s*20\d{2}", "self-citation placeholder"),
+    (r"filecite", "filecite residue"),
+    (r"【\d+†source】", "PDF source residue"),
 ]
 
 REQUIRED_FRONTMATTER_FIELDS = ["title", "date", "description"]
@@ -68,7 +65,7 @@ def extract_frontmatter(text: str) -> dict | None:
 def check_patterns(text: str, patterns: list[tuple[str, str]]) -> list[dict]:
     issues = []
     for pattern, label in patterns:
-        for m in re.finditer(pattern, text):
+        for m in re.finditer(pattern, text, flags=re.IGNORECASE):
             line_no = text[:m.start()].count("\n") + 1
             issues.append({
                 "type": label,
@@ -95,11 +92,11 @@ def count_colons_in_body(text: str) -> list[dict]:
             continue
         if stripped.startswith("#") or stripped.startswith("|") or stripped.startswith("-"):
             continue
-        # Body text with colon that isn't a URL
-        colon_count = len(re.findall(r"(?<!http)(?<!https)：", stripped))
+        # Body text with ASCII colons that are not part of URLs.
+        colon_count = len(re.findall(r"(?<!http)(?<!https):", stripped))
         if colon_count >= 2:
             issues.append({
-                "type": "正文冒號過多",
+                "type": "colon overuse in body prose",
                 "line": i,
                 "match": stripped[:60],
             })
@@ -149,18 +146,18 @@ def run_checks(article_path: Path) -> dict:
 
     # Build summary
     counts = {
-        "禁用句型": len(report["style_violations"]),
-        "報告腔": len(report["report_tone"]),
-        "Prompt 洩漏": len(report["prompt_leaks"]),
-        "自引殘留": len(report["self_citations"]),
-        "冒號過多": len(report["colon_overuse"]),
-        "Frontmatter 問題": len(report["frontmatter"]["issues"]),
+        "style violations": len(report["style_violations"]),
+        "report scaffolding": len(report["report_tone"]),
+        "prompt leakage": len(report["prompt_leaks"]),
+        "self-citation residue": len(report["self_citations"]),
+        "colon overuse": len(report["colon_overuse"]),
+        "frontmatter issues": len(report["frontmatter"]["issues"]),
     }
     parts = [f"{k}: {v}" for k, v in counts.items() if v > 0]
     if parts:
-        report["summary"] = "FAIL — " + ", ".join(parts)
+        report["summary"] = "FAIL - " + ", ".join(parts)
     else:
-        report["summary"] = "PASS — 所有檢查通過"
+        report["summary"] = "PASS - all checks passed"
 
     return report
 
@@ -181,11 +178,11 @@ def format_report(report: dict) -> str:
         lines.append("")
 
     for section, key in [
-        ("禁用句型", "style_violations"),
-        ("報告腔", "report_tone"),
-        ("Prompt 洩漏", "prompt_leaks"),
-        ("自引殘留", "self_citations"),
-        ("冒號過多", "colon_overuse"),
+        ("Style Violations", "style_violations"),
+        ("Report Scaffolding", "report_tone"),
+        ("Prompt Leakage", "prompt_leaks"),
+        ("Self-Citation Residue", "self_citations"),
+        ("Colon Overuse", "colon_overuse"),
     ]:
         items = report[key]
         if items:
@@ -230,9 +227,9 @@ def main() -> int:
         if state["status"] in ("rewritten", "editorial-pass"):
             state["status"] = "ready-to-publish"
             state["lastDeliverable"] = "verification/editorial-pass-report.md"
-            state["nextStep"] = "frontmatter 確認 → commit → push → deploy → live URL 驗證"
+            state["nextStep"] = "confirm frontmatter -> commit -> push -> deploy -> verify live URL"
             save_state(job_dir, state)
-            print(f"\n→ State advanced to ready-to-publish")
+            print(f"\n-> State advanced to ready-to-publish")
 
     return 0 if report["passed"] else 1
 

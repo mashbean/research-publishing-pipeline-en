@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pipeline orchestrator — run the next available step for an article job.
+Pipeline orchestrator - run the next available step for an article job.
 
 Usage:
   # Run the next step automatically
@@ -34,16 +34,16 @@ from lib import (
 SCRIPTS = ROOT / "scripts"
 
 
-# ─── Step definitions ──────────────────────────────────────────────────
+# --- Step definitions ---
 
 def step_scope(job_dir: Path, state: dict) -> str | None:
-    """intake → scoped: validate intake is filled."""
+    """intake -> scoped: validate intake is filled."""
     import yaml
     intake = yaml.safe_load((job_dir / "intake.yaml").read_text())
     required = ["title_hint", "core_question", "audience"]
     missing = [f for f in required if not intake.get(f) or intake[f] in ("", [""])]
     if missing:
-        return f"intake.yaml missing: {', '.join(missing)} — fill these before scoping"
+        return f"intake.yaml missing: {', '.join(missing)} - fill these before scoping"
     state["status"] = "scoped"
     state["nextStep"] = "generate deep research prompt"
     state["lastDeliverable"] = "intake.yaml"
@@ -52,7 +52,7 @@ def step_scope(job_dir: Path, state: dict) -> str | None:
 
 
 def step_generate_prompt(job_dir: Path, state: dict) -> str | None:
-    """scoped → researching: generate deep research prompt."""
+    """scoped -> researching: generate deep research prompt."""
     result = subprocess.run(
         [sys.executable, str(SCRIPTS / "run_deep_research.py"), str(job_dir), "generate-prompt"],
         capture_output=True, text=True,
@@ -64,13 +64,13 @@ def step_generate_prompt(job_dir: Path, state: dict) -> str | None:
 
 
 def step_integrate_research(job_dir: Path, state: dict) -> str | None:
-    """researching → evidence-mapped/drafted: integrate deep research results."""
+    """researching -> evidence-mapped/drafted: integrate deep research results."""
     raw = job_dir / "raw" / "deep-research-output.md"
     if not raw.exists():
         return (
-            "Deep Research 結果尚未就緒。\n"
-            "請將 Deep Research 輸出存到 raw/deep-research-output.md，\n"
-            "或執行: run_deep_research.py <job> save-raw <file>"
+            "Deep Research output is not ready.\n"
+            "Save the Deep Research output to raw/deep-research-output.md,\n"
+            "or run: run_deep_research.py <job> save-raw <file>"
         )
     result = subprocess.run(
         [sys.executable, str(SCRIPTS / "run_deep_research.py"), str(job_dir), "integrate"],
@@ -83,7 +83,7 @@ def step_integrate_research(job_dir: Path, state: dict) -> str | None:
 
 
 def step_fact_check(job_dir: Path, state: dict) -> str | None:
-    """drafted → fact-checking: validate draft exists, create fact-check template."""
+    """drafted -> fact-checking: validate draft exists, create fact-check template."""
     draft = None
     for name in ["research-draft.md", "blog-rewrite.md"]:
         if (job_dir / "drafts" / name).exists():
@@ -99,14 +99,14 @@ def step_fact_check(job_dir: Path, state: dict) -> str | None:
         print(f"Created fact-check template: {fc}")
 
     state["status"] = "fact-checking"
-    state["nextStep"] = "Complete fact-check-report.md → rewrite"
+    state["nextStep"] = "Complete fact-check-report.md -> rewrite"
     state["lastDeliverable"] = f"drafts/{draft.name}"
     save_state(job_dir, state)
     return None
 
 
 def step_editorial_pass(job_dir: Path, state: dict) -> str | None:
-    """rewritten → editorial-pass or ready-to-publish: run automated checks."""
+    """rewritten -> editorial-pass or ready-to-publish: run automated checks."""
     result = subprocess.run(
         [sys.executable, str(SCRIPTS / "run_editorial_pass.py"), str(job_dir), "--auto-advance"],
         capture_output=True, text=True,
@@ -114,23 +114,23 @@ def step_editorial_pass(job_dir: Path, state: dict) -> str | None:
     print(result.stdout)
     if result.returncode != 0:
         state["status"] = "editorial-pass"
-        state["nextStep"] = "Fix editorial issues → re-run editorial pass"
+        state["nextStep"] = "Fix editorial issues -> re-run editorial pass"
         state["lastDeliverable"] = "verification/editorial-pass-report.md"
         save_state(job_dir, state)
-        return "Editorial pass found issues — see verification/editorial-pass-report.md"
+        return "Editorial pass found issues - see verification/editorial-pass-report.md"
     # State updated by run_editorial_pass.py --auto-advance
     return None
 
 
 def step_publish(job_dir: Path, state: dict) -> str | None:
-    """ready-to-publish → published: needs repo + target path."""
+    """ready-to-publish -> published: needs repo + target path."""
     publish = state.get("publish", {})
     repo = publish.get("repo", "")
     target_file = publish.get("file", "")
     if not repo or not target_file:
         return (
-            "publish.repo 和 publish.file 必須設定。\n"
-            "使用 update_job_state.py 設定:\n"
+            "publish.repo and publish.file must be set.\n"
+            "Set them with update_job_state.py:\n"
             f"  update_job_state.py {state['jobId']} --publish-repo <path> --publish-file <path>"
         )
 
@@ -149,19 +149,19 @@ def step_publish(job_dir: Path, state: dict) -> str | None:
 
 
 def step_verify(job_dir: Path, state: dict) -> str | None:
-    """published → verified: verify live URL."""
+    """published -> verified: verify live URL."""
     publish = state.get("publish", {})
     canonical = publish.get("canonicalUrl", "")
     if not canonical:
         return (
-            "canonicalUrl 尚未設定。\n"
-            "使用 update_job_state.py 設定:\n"
+            "canonicalUrl is not set.\n"
+            "Set it with update_job_state.py:\n"
             f"  update_job_state.py {state['jobId']} --canonical-url <url>"
         )
 
     title = state.get("title", "")
     if not title:
-        return "Job title not set — cannot verify"
+        return "Job title not set - cannot verify"
 
     result = subprocess.run(
         [sys.executable, str(SCRIPTS / "verify_publish.py"),
@@ -184,7 +184,7 @@ def step_validate(job_dir: Path, state: dict) -> str | None:
     return None
 
 
-# ─── Status → step mapping ──────────────────────────────────────────
+# --- Status to step mapping ---
 
 NEXT_STEP: dict[str, callable] = {
     "intake": step_scope,
@@ -228,23 +228,23 @@ def show_status(job_dir: Path) -> int:
     print(f"Status: {status}")
 
     if status in TERMINAL_STATES:
-        print(f"→ Terminal state reached.")
+        print(f"-> Terminal state reached.")
         return 0
 
     if status in HUMAN_REQUIRED:
-        print(f"→ Needs human: {HUMAN_REQUIRED[status]}")
+        print(f"-> Needs human: {HUMAN_REQUIRED[status]}")
         return 0
 
     step_fn = NEXT_STEP.get(status)
     if step_fn:
-        print(f"→ Next auto step: {step_fn.__name__}")
+        print(f"-> Next auto step: {step_fn.__name__}")
     else:
-        print(f"→ No automatic step available")
+        print(f"-> No automatic step available")
 
     if state.get("nextStep"):
-        print(f"→ Planned: {state['nextStep']}")
+        print(f"-> Planned: {state['nextStep']}")
     if state.get("blockedReason"):
-        print(f"→ Blocked: {state['blockedReason']}")
+        print(f"-> Blocked: {state['blockedReason']}")
 
     # Completeness
     subprocess.run(
@@ -280,7 +280,7 @@ def run_next(job_dir: Path) -> int:
     # Reload state (step may have updated it)
     state = load_state(job_dir)
     save_state(job_dir, state)
-    print(f"\n→ Status: {state['status']}")
+    print(f"\n-> Status: {state['status']}")
     return 0
 
 
@@ -298,7 +298,7 @@ def run_auto(job_dir: Path) -> int:
 
         if status in HUMAN_REQUIRED:
             print(f"\n{'='*40}")
-            print(f"Paused — needs human: {HUMAN_REQUIRED[status]}")
+            print(f"Paused - needs human: {HUMAN_REQUIRED[status]}")
             return 0
 
         step_fn = NEXT_STEP.get(status)
@@ -351,7 +351,7 @@ def main() -> int:
             return 1
         state = load_state(job_dir)
         save_state(job_dir, state)
-        print(f"\n→ Status: {state['status']}")
+        print(f"\n-> Status: {state['status']}")
         return 0
     else:
         print(f"Unknown action: {action}", file=sys.stderr)

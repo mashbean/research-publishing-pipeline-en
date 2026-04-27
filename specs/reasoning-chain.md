@@ -1,101 +1,108 @@
-# 推理鏈規範
+# Reasoning Chain Specification
 
-## 目標
+## Goal
 
-讓每篇文章都有可追溯的推理結構：從核心問題到最終結論，每一步都標明是事實、推論還是修辭，每一個推論都標明推理類型和強度。
+Every article should have a traceable reasoning structure from core question to final conclusion. Each step should identify whether it is fact, inference, or rhetoric, and every inference should name its reasoning type and strength.
 
-## 推理鏈結構
+## Reasoning Chain Structure
 
-一篇研究文章的推理鏈由四層組成：
+A research article reasoning chain has four layers:
 
+```text
+Layer 1: Core Question
+    |
+Layer 2: Sub-Arguments, each answering one part of the core question
+    |
+Layer 3: Evidence, with at least one A-grade or B-grade source for each sub-argument
+    |
+Layer 4: Synthesis, deriving a defensible conclusion from the sub-arguments
 ```
-Layer 1: 核心問題 (Core Question)
-    │
-Layer 2: 子論點 (Sub-Arguments)  ← 每個子論點回答核心問題的一個面向
-    │
-Layer 3: 證據支撐 (Evidence)     ← 每個子論點至少一個 A/B 級來源
-    │
-Layer 4: 合成結論 (Synthesis)    ← 從子論點推出可辯護的結論
-```
 
-## 推理類型標記
+## Reasoning Type Labels
 
-每一個從 Layer 3 → Layer 2 或 Layer 2 → Layer 4 的推理步驟，必須標記類型：
+Every reasoning step from Layer 3 to Layer 2 or from Layer 2 to Layer 4 must be labeled:
 
-| 類型 | 符號 | 說明 | 風險等級 |
+| Type | Symbol | Description | Risk level |
 |------|------|------|---------|
-| 演繹 | `D` (deduction) | 如果前提為真，結論必然為真 | 低 |
-| 歸納 | `I` (induction) | 從多個案例歸納出模式 | 中 |
-| 類比 | `A` (analogy) | 從類似場景推論 | 中高 |
-| 溯因 | `Ab` (abduction) | 推測最佳解釋 | 高 |
-| 因果 | `C` (causal) | 主張 X 導致 Y | 須區分：觀察到的相關性 vs 驗證的因果 |
+| Deduction | `D` | If the premises are true, the conclusion necessarily follows | Low |
+| Induction | `I` | Generalizes a pattern from multiple cases | Medium |
+| Analogy | `A` | Infers from a similar context | Medium-high |
+| Abduction | `Ab` | Infers the best available explanation | High |
+| Causal | `C` | Claims that X causes Y | Must distinguish observed correlation from verified causality |
 
-## 推理鏈模板
+## Reasoning Chain Template
 
 ```markdown
-## 核心問題
-[一句話]
+## Core Question
 
-## 推理鏈
+[One sentence]
 
-### Sub-Arg 1: [子論點名稱]
-- **主張**: [一句話]
-- **推理類型**: I (歸納：從 3 個案例歸納)
-- **支撐證據**:
-  1. [來源 A 級] Wikimedia FY2024-25 → 收入 $208.6M，捐助為主
-  2. [來源 A 級] Signal 990 → 年虧損 $8.6M
-  3. [來源 B 級] Mastodon blog → ~€700K/年
-- **推理強度**: 中（3 個案例，但規模差異大）
-- **反例/限制**: 三者營運規模差距過大，歸納的適用範圍有限
-- **結論**: [從證據推出的安全結論]
+## Reasoning Chain
+
+### Sub-Arg 1: [sub-argument name]
+
+- **Claim**: [one sentence]
+- **Reasoning type**: I, induction from three cases
+- **Supporting evidence**:
+  1. [A-grade source] Wikimedia FY2024-25 audit -> $208.6M revenue, mostly donations
+  2. [A-grade source] Signal 990 -> $8.6M annual deficit
+  3. [B-grade source] Mastodon blog -> roughly EUR700K/year
+- **Reasoning strength**: medium, because the three cases differ substantially in scale
+- **Counterexamples or limits**: The cases operate at very different scales, limiting generalization.
+- **Conclusion**: [safe conclusion derived from the evidence]
 
 ### Sub-Arg 2: ...
 
-## 合成
-- **從 Sub-Arg 1-N 推出**: [最終結論]
-- **推理路徑**: Sub-Arg 1 (I) + Sub-Arg 2 (C) + Sub-Arg 3 (A) → Synthesis (Ab)
-- **結論強度**: [強/中/弱]
-- **已知盲點**: [尚未處理的反證或替代解釋]
+## Synthesis
+
+- **Derived from Sub-Args 1-N**: [final conclusion]
+- **Reasoning path**: Sub-Arg 1 (I) + Sub-Arg 2 (C) + Sub-Arg 3 (A) -> Synthesis (Ab)
+- **Conclusion strength**: [strong/medium/weak]
+- **Known blind spots**: [unaddressed counterevidence or alternative explanations]
 ```
 
-## 必須處理的推理陷阱
+## Required Reasoning Pitfalls
 
-### 1. 因果 vs 相關
+### 1. Causation vs Correlation
 
-❌ `Python BDFL 轉型後 TIOBE 排名上升`（暗示因果）
-✓ `Python 在 2018 年完成治理轉型後，TIOBE 排名持續上升；兩者是否有因果關係尚無定論`
+Bad: `After Python's BDFL transition, its TIOBE ranking rose`, when written to imply causation.
 
-**規則**：除非有 controlled study 或 quasi-experimental design，所有觀察到的共變都只能寫成相關性。
+Good: `After Python completed its governance transition in 2018, its TIOBE ranking continued to rise. Whether the two are causally related remains unsettled.`
 
-### 2. 倖存者偏差
+Rule: unless there is a controlled study or quasi-experimental design, observed covariation must be written as correlation rather than causation.
 
-❌ `Wikipedia 存活 25 年，證明非營利模式可行`
-✓ `Wikipedia 是少數存活超過 20 年的非營利平台之一。同期失敗的案例（Diaspora*, Ello, App.net）顯示存活率極低。`
+### 2. Survivorship Bias
 
-**規則**：每提到一個成功案例，必須至少提到一個同類別的失敗案例。
+Bad: `Wikipedia has survived for 25 years, proving the nonprofit model works.`
 
-### 3. 範疇滑移
+Good: `Wikipedia is one of the few nonprofit platforms to survive for more than 20 years. Failed peer cases such as Diaspora*, Ello, and App.net show that survival rates are low.`
 
-❌ `非營利平台都可以用合作社模式`
-✓ `平台合作社（如 Stocksy）適用於有明確交易的場景；純社群平台的合作社轉型缺乏成功前例。`
+Rule: every successful case needs at least one comparable failed case.
 
-**規則**：在 evidence map 中標記每個案例的適用範疇，不允許跨範疇直接推論。
+### 3. Category Drift
 
-### 4. 缺乏反事實
+Bad: `All nonprofit platforms can use the cooperative model.`
 
-❌ `Mastodon 選擇非營利結構，所以無法快速擴張`
-✓ `Mastodon 的擴張速度受限於聯邦式架構和 gGmbH 的有限資源。是否為非營利結構本身的限制，還是其他因素（如 UX、onboarding），需要與 Bluesky（非營利但中心化）的對照。`
+Good: `Platform cooperatives such as Stocksy fit transactional settings. Pure social platforms have fewer successful cooperative precedents.`
 
-**規則**：每一個因果主張必須附帶至少一個反事實問題。
+Rule: mark each case's applicable category in the evidence map. Do not generalize directly across categories without justification.
 
-## 在 pipeline 中的位置
+### 4. Missing Counterfactuals
 
-推理鏈在 `evidence-mapped` → `drafted` 之間建立。
+Bad: `Mastodon's nonprofit structure made it unable to scale quickly.`
 
-**交付物**：`notes/reasoning-chain.md`
+Good: `Mastodon's scaling speed is constrained by its federated architecture and limited gGmbH resources. Whether nonprofit structure itself is the constraint, or whether factors such as UX and onboarding matter more, needs comparison with Bluesky, which is nonprofit but centralized.`
 
-**建立時機**：evidence map 完成後、research draft 開始前。
+Rule: every causal claim must include at least one counterfactual question.
 
-**誰建立**：research subagent 或 writer subagent 的第一步。
+## Place in the Pipeline
 
-**誰驗證**：critic subagent 在 fact-check 時必須對照推理鏈，檢查每個推理步驟的類型和強度是否合理。
+The reasoning chain is built between `evidence-mapped` and `drafted`.
+
+Deliverable: `notes/reasoning-chain.md`
+
+Timing: after the evidence map is complete and before the research draft begins.
+
+Owner: the research subagent or the writer subagent's first step.
+
+Reviewer: the critic subagent must compare against the reasoning chain during fact-checking and evaluate whether each inference type and strength is reasonable.

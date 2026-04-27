@@ -1,20 +1,20 @@
 # research-publishing-pipeline
 
-研究文章自動生產線 — 從題目到上線發稿的半自動 pipeline，搭配 Claude Code 使用。
+A semi-automated research article pipeline for moving from topic intake to publication and live verification with Claude Code.
 
-## 它做什麼？
+## What It Does
 
-給定一個研究題目，pipeline 自動走完：
+Given a research topic, the pipeline moves through:
 
+```text
+intake -> research -> fact-check -> writing -> editing -> publishing -> live verification
 ```
-intake → 研究 → 查核 → 寫作 → 編輯 → 發稿 → 線上驗證
-```
 
-每個階段由專門的 AI subagent 負責，狀態機自動管理流程推進與回退。
+Each stage is handled by a focused AI subagent, while a state machine manages progress, handoffs, and valid rollback paths.
 
-## 安裝
+## Installation
 
-### 方法一：自動安裝（推薦）
+### Option 1: Automatic Installation
 
 ```bash
 git clone <this-repo-url> /tmp/research-pipeline
@@ -22,114 +22,116 @@ cd /tmp/research-pipeline
 ./setup.sh ~/your-project
 ```
 
-### 方法二：手動安裝
+### Option 2: Manual Installation
 
 ```bash
-# 1. 複製 pipeline 到你的專案
+# 1. Copy the pipeline into your project
 cp -R research-publishing-pipeline/ ~/your-project/tools/research-publishing-pipeline/
 
-# 2. 安裝 /article 指令
+# 2. Install the /article command
 mkdir -p ~/your-project/.claude/commands
 cp .claude/commands/article.md ~/your-project/.claude/commands/article.md
 
-# 3. 安裝 Python 依賴
+# 3. Install the Python dependency
 pip3 install pyyaml
 ```
 
-## 使用
+## Usage
 
-安裝完成後，在 Claude Code 裡輸入：
+After installation, type this in Claude Code:
 
+```text
+/article zero-knowledge proof applications for digital identity
 ```
-/article 數位身份的零知識證明應用
-```
 
-或指定更多參數：
+Or provide more structured parameters:
 
-```
+```text
 /article
-題目：公共數位基礎設施的治理挑戰
-讀者：科技政策研究者
-核心問題：DPI 如何在效率與隱私之間取得平衡？
+Title: Governance challenges in public digital infrastructure
+Audience: Technology policy researchers
+Core question: How can DPI balance efficiency and privacy?
 ```
 
-### 繼續未完成的文章
+### Continue an Unfinished Article
 
-```
-/article 繼續
+```text
+/article continue
 ```
 
-### 查看所有 job 狀態
+### Check a Job Status
 
 ```bash
 cd tools/research-publishing-pipeline
 python3 scripts/run_pipeline.py <job-id> status
 ```
 
-## Pipeline 架構
+## Pipeline Structure
 
+```text
+scripts/        # Automation scripts for state, research, editing, publishing
+prompts/        # Subagent instruction templates
+specs/          # Workflow, citation, style, and publishing policies
+templates/      # Job templates
+references/     # Case studies
+jobs/           # Article job directories
+docs/           # User guides
+CLAUDE.md       # Claude Code operating guide
+.claude/commands/article.md  # /article command definition
 ```
-├── scripts/        # 自動化腳本（狀態機、研究、編輯、發稿）
-├── prompts/        # Subagent 指令模板（research, writer, critic, editor, publish）
-├── specs/          # 流程規範（workflow, citation, style, publish policy）
-├── templates/      # Job 模板（intake.yaml, state.json, ...）
-├── references/     # 案例研究
-├── jobs/           # 文章 job 目錄（每篇文章一個資料夾）
-├── docs/           # 使用指南
-├── CLAUDE.md       # Claude Code 操作指南（pipeline 的大腦）
-└── .claude/commands/article.md  # /article 指令定義
-```
 
-## 自訂
+## Customization
 
-### 改寫風格規則
+### Writing Style Rules
 
-編輯 `specs/style-policy-zh.md` 和 `scripts/run_editorial_pass.py` 中的 pattern。
+Edit `specs/style-policy-en.md` and the patterns in `scripts/run_editorial_pass.py`.
 
-### 調整 agent 行為
+### Agent Behavior
 
-編輯 `prompts/agent-*.md`：
-- `agent-research.md` — 研究策略、來源收集方式
-- `agent-writer.md` — 寫作風格、語氣、禁則
-- `agent-critic.md` — 查核標準、evidence 要求
-- `agent-editor.md` — 編輯標準、結構審查
+Edit `prompts/agent-*.md`:
 
-### 自我引用偵測
+- `agent-research.md`: research strategy and source collection
+- `agent-writer.md`: writing style, tone, and prohibited patterns
+- `agent-critic.md`: fact-checking standards and evidence requirements
+- `agent-editor.md`: editing standards and structural review
 
-在 `scripts/run_editorial_pass.py` 的 `SELF_CITATION_PATTERNS` 加入你的名字：
+### Self-Citation Detection
+
+Add your own names or recurring placeholders to `SELF_CITATION_PATTERNS` in `scripts/run_editorial_pass.py`:
 
 ```python
-(r"yourname,?\s*20\d{2}", "自我引用 placeholder"),
+(r"yourname,?\s*20\d{2}", "self-citation placeholder"),
 ```
 
-### 發稿目標
+### Publishing Target
 
-建立 job 時指定發稿 repo：
+Specify a publishing repository when you create a job:
 
 ```bash
 python3 scripts/start_article_job.py my-article \
   --publish-repo path/to/blog-repo
 ```
 
-## 依賴
+## Requirements
 
 - Python 3.10+
 - PyYAML (`pip install pyyaml`)
-- Claude Code（CLI 或 IDE extension）
-- gh CLI（optional，用於 deploy 偵測）
+- Claude Code CLI or IDE extension
+- gh CLI, optional for deploy detection
 
-## 狀態機
+## State Machine
 
+```text
+intake -> scoped -> researching -> evidence-mapped -> drafted ->
+fact-checking -> rewritten -> editorial-pass -> ready-to-publish ->
+published -> verified
 ```
-intake → scoped → researching → evidence-mapped → drafted →
-fact-checking → rewritten → editorial-pass → ready-to-publish →
-published → verified
-```
 
-合法回退：
-- `fact-checking → researching`（需補研究）
-- `rewritten → fact-checking`（改寫新增未查核 claim）
-- `editorial-pass → rewritten`（重大結構問題）
+Valid rollback paths:
+
+- `fact-checking -> researching`, when more research is needed
+- `rewritten -> fact-checking`, when rewrite adds unverified claims
+- `editorial-pass -> rewritten`, when major structure or tone issues remain
 
 ## License
 
