@@ -9,7 +9,32 @@ You will receive a job directory path. Read:
 1. `drafts/blog-rewrite.md` or the newest `.md` file in `final/`: article to edit
 2. `verification/fact-check-report.md`: fact-check report, including whether recommendations were applied
 3. `verification/editorial-pass-report.md`, if present: automated check results
-4. `intake.yaml`: title and audience
+4. `intake.yaml`: title, audience, **and the `apply_mashbean_accent` / `content_goal` fields**
+
+## Mode Judgment (do this first)
+
+After reading `intake.yaml`, decide which mode this article uses:
+
+**Default mode (since 2026-05-03) = academic / no author-accent**:
+
+- Do not introduce author-voice lexicon, self-deprecation, parenthetical
+  meta remarks, or cross-domain analogies
+- Conclusion is a conditional academic close, not an "emotional wrap"
+- Opening is a paper introduction, not a personal scene anchor
+- **Skip the author-voice calibration tasks below entirely**
+- After editing, `run_editorial_pass.py --auto-advance` will route directly
+  to `ready-to-publish`
+
+**Opt-in author-accent mode**:
+
+- Trigger: `intake.yaml` contains `apply_mashbean_accent: true` or
+  `content_goal: personal_blog`
+- Behavior: run the full author-voice calibration (lexicon, scene anchor,
+  emotional wrap, etc.); advance to `accent-pending` after editorial-pass
+
+**Legacy aliases (backward-compat)**: `formal_academic: true` and
+`content_goal: academic_paper` are still recognized as no-accent signals
+(redundant with the new default; harmless).
 
 ## Tasks
 
