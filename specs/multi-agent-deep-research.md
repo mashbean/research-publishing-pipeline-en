@@ -156,12 +156,26 @@ This script uses the Anthropic API directly with Opus 4.7 + adaptive thinking +
 See `scripts/run_external_deep_research.py` docstring for details. Output:
 `raw/external-deep-research-claude.md`.
 
-**Known limitation**: `web_search_20260209` includes built-in dynamic filtering
-that uses a server-side Python sandbox. If Claude writes long output to a file
-inside that sandbox, the file cannot be exported back to the host filesystem;
-only the streamed summary survives. When this happens, treat cross-validation
-as a "soft pass" (no contradictions found is enough); do not require a full
-11K-word external pack.
+**Sandbox-leak fix (2026-05-03)**: previously `web_search_20260209` shipped
+with built-in dynamic filtering backed by a server-side Python sandbox. In
+article 01 cross-validation the model wrote its 11K-character output into a
+sandbox file that could not be exported to the host filesystem; only a 3.8KB
+streamed summary survived. Three-layer fix:
+
+1. **Tool downgrade** — `web_search_20260209` → `web_search_20250305`. The
+   2025-03 version has no built-in dynamic filtering, so no Python sandbox
+   is exposed. Removes the leak surface entirely.
+2. **Strict streaming system prompt** — explicit `CRITICAL OUTPUT REQUIREMENT`
+   block forbidding file saves and code-execution detours; output must stream
+   as text content blocks.
+3. **Stream-time leak detector** — flags any `server_tool_use` (with sandbox
+   tool names like `code_execution` / `bash` / `text_editor` /
+   `container_upload`) or `*_code_execution_tool_result` blocks. Each detection
+   prints a `SANDBOX-LEAK WARNING`; the final summary reports `Sandbox leaks: N`.
+
+If `Sandbox leaks: > 0` still appears after the fix, the saved `.md` may be
+incomplete; re-run, or fall back to "soft pass" (treat cross-validation as
+confirming no contradictions without requiring a full external pack).
 
 ## Step 5 — Pipeline integrate
 
@@ -237,14 +251,22 @@ source files and corrects both the citation and `source-registry.md`.
 ### External cross-validation output lost in sandbox
 
 **Symptom**: `run_external_deep_research.py` reports high `output_tokens`
-(e.g., 46K) but the saved `.md` is only a few KB.
+(e.g., 46K) but the saved `.md` is only a few KB; or stderr emits
+`⚠️ SANDBOX-LEAK WARNING`.
 
-**Cause**: Claude wrote a long file inside the `web_search` Python sandbox;
-the host filesystem only received the streamed summary.
+**Cause**: Claude used `web_search`'s internal dynamic filtering (or another
+sandbox tool) to write a long file; the host filesystem only received the
+streamed summary.
 
-**Recovery**: extract the framing-level findings from the streamed summary
-and add them to the integration file's `research_summary` section (label
-them as "external cross-validation"); do not require a full external pack.
+**Recovery (since 2026-05-03)**:
+1. The default `web_search_20250305` has no dynamic filtering, so this
+   should no longer occur on the happy path.
+2. If a `Sandbox leaks: N` (N > 0) still appears, the saved file may be
+   incomplete.
+3. Fall back to extracting framing-level findings from the streamed summary
+   and adding them to the integration file's `research_summary` section
+   (label as "external cross-validation, partial sandbox leak"), or rerun
+   with a stricter system prompt.
 
 ## Launch example
 
