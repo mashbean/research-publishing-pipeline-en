@@ -268,6 +268,82 @@ streamed summary.
    (label as "external cross-validation, partial sandbox leak"), or rerun
    with a stricter system prompt.
 
+### Writer / Critic / Rewriter stalls in style-rule self-check loop (since article 03)
+
+**Symptom**: Subagent reports estimating "X violations of `not-A-but-B`,
+Y excess em-dashes, Z report-tone phrases" but cannot proceed to a Write
+operation; 600s watchdog kills it. Article 03's writer + critic + rewriter
+hit this pattern three times in a row.
+
+**Cause**: Subagents performing heavy style-rule cleanup on long Chinese
+drafts (≥50KB) fall into an internal "scan → estimate → rewrite-strategy →
+scan again" loop. Each iteration consumes tokens but produces no streamable
+output, breaking the stream and triggering the watchdog.
+
+**Recovery (main agent does the rewrite via Python)**:
+
+1. Detect whether the subagent has entered this loop (typically the failure
+   summary describes "estimated X violations to fix" rather than an actual
+   completion count).
+2. Main agent uses Bash + Python to apply mechanical rewrites in one pass:
+   ```python
+   # Example: mass replace + targeted fixes
+   text = src.read_text()
+   text = text.replace("old banned pattern", "rewritten pattern")  # ≤10 targeted
+   text = text.replace("本研究", "本文")                              # mass replace
+   text = text.replace("——", "；")                                   # mass em-dash collapse
+   out.write_text(text)
+   ```
+3. Verify zero violations with `grep -nE`.
+
+**Decision rule**: Switch to main agent on the first stall. Re-spawning a
+similar subagent will fail the same way.
+
+### Critic line-by-line enumeration timeout
+
+**Symptom**: Critic subagent spends 22 minutes completing only 14 tool uses,
+hits stream idle timeout, fact-check-report remains as the empty job-creation
+template.
+
+**Cause**: Performing exhaustive line-by-line audits on a 50KB / 8-chapter /
+50-citation manuscript — including suggested rewrites for each violation —
+exceeds the subagent's streaming budget.
+
+**Recovery**: Split critic responsibilities. Main agent handles style-rule
+audits via grep (one pass yields the full line-number list). Subagent focuses
+on the heavier judgement work: citation accuracy, argument rigor, high-risk
+claim handling. Or remove the style-rule audit from the critic entirely and
+let the editor / editorial-pass automation handle it.
+
+### Prescribed "must include" string itself violates style rules (since article 03)
+
+**Symptom**: A sentence the main agent prescribed as "must appear at the
+end" (e.g., a closing line) itself contains a banned pattern (e.g.,
+`not-A-but-B`, excessive em-dashes). The writer cannot satisfy both
+"must include this sentence" and "zero style-rule violations" and falls
+into a self-check loop until stall.
+
+**Cause**: The main agent did not grep-check its own prescribed strings
+against the style-policy file before issuing the prompt.
+
+**Prevention** (mandatory for every multi-agent run from article 04 onwards):
+
+1. Before sending the writer prompt, grep every prescribed "form
+   definition", "core closing line", and "must-appear claim statement"
+   against the relevant style-policy file (`specs/style-policy-zh.md` or
+   `specs/style-policy-en.md`).
+2. Rewrite any hits before they go into the prompt.
+3. A simple helper:
+   ```bash
+   echo "your prescribed sentence" | \
+     grep -E "not.*but|truly the.*is|the real bottleneck is" && \
+     echo "BAD: violates style policy" || echo "OK"
+   ```
+
+**Recovery (if already stalled)**: rewrite the offending sentence and
+re-issue the prompt; or have the main agent apply the entire rewrite
+via Python directly.
+
 ## Launch example
 
 ```python
